@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indian Startup Funding — 2015–2020</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0F1115; --panel:#171B21; --panel2:#1D222A; --border:#262B33;
+  --text:#E9E7E2; --muted:#8B92A0; --amber:#E8A33D; --teal:#4FD1C5;
+  --coral:#EF6461; --violet:#9C97D6; --green:#6FCF97; --blue:#6FA8DC;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;line-height:1.4}
+header{padding:28px 32px 0;border-bottom:1px solid var(--border);}
+h1{font-size:22px;font-weight:700;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+nav{display:flex;gap:4px}
+nav button{background:none;border:none;color:var(--muted);font:inherit;font-size:14px;padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent}
+nav button.active{color:var(--amber);border-color:var(--amber)}
+main{padding:24px 32px 48px;max-width:1200px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.kpi .l{color:var(--muted);font-size:12px;margin-bottom:8px}
+.kpi .v{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--amber)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid .full{grid-column:1/-1}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px 20px 8px}
+.card h3{font-size:14px;font-weight:600;margin:0 0 14px;color:var(--text)}
+.card .wrap{position:relative;height:260px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border)}
+td{padding:9px 10px;border-bottom:1px solid var(--border)}
+tbody tr:hover{background:var(--panel2)}
+td.amt{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--teal)}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px;border-top:1px solid var(--border)}
+@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Indian Startup Funding</h1>
+  <p class="sub">3,037 funding rounds across the Indian startup ecosystem, 2015–2020</p>
+  <nav>
+    <button class="active" data-p="0">Executive Overview</button>
+    <button data-p="1">Sector &amp; Geography</button>
+    <button data-p="2">Investors &amp; Startups</button>
+  </nav>
+</header>
+<main>
+
+  <section class="page active" id="p0">
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card full"><h3>Annual funding trend</h3><div class="wrap"><canvas id="cYear"></canvas></div></div>
+      <div class="card"><h3>Top sectors by funding</h3><div class="wrap"><canvas id="cInd1"></canvas></div></div>
+      <div class="card"><h3>Top cities by funding</h3><div class="wrap"><canvas id="cCity1"></canvas></div></div>
+    </div>
+  </section>
+
+  <section class="page" id="p1">
+    <div class="grid">
+      <div class="card"><h3>Funding by investment type</h3><div class="wrap"><canvas id="cType"></canvas></div></div>
+      <div class="card"><h3>Sector share of total funding</h3><div class="wrap"><canvas id="cIndShare"></canvas></div></div>
+      <div class="card full"><h3>Top cities by funding</h3><div class="wrap"><canvas id="cCity2"></canvas></div></div>
+    </div>
+  </section>
+
+  <section class="page" id="p2">
+    <div class="grid">
+      <div class="card"><h3>Most active investors (by deal count)</h3><div class="wrap"><canvas id="cInv"></canvas></div></div>
+      <div class="card"><h3>Top startups by total funding raised</h3><div class="wrap"><canvas id="cStartup"></canvas></div></div>
+      <div class="card full">
+        <h3>Largest individual funding deals</h3>
+        <table><thead><tr><th>Startup</th><th>Date</th><th>Sector</th><th>City</th><th>Round</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody id="dealsBody"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+</main>
+<footer>Dataset: Indian Startup Funding (cleaned), 2015–2020 · Built with Claude</footer>
+
+<script>
+const D = {"kpi":{"total_funding":38119342864,"total_deals":3037,"total_startups":2450,"avg_funding":18450795,"med_funding":1770000},"yearly":{"2015":8669042368,"2016":3828088608,"2017":10429309730,"2018":5116118369,"2019":9686576535,"2020":390207254},"industries":{"e-commerce":8246393693,"consumer internet":6247834245,"transportation":3916632394,"tech":2251457930,"finance":1971438000,"unknown":1230961368,"fintech":1224211265,"Other":13030413970},"cities":{"Bengaluru":18476366863,"Mumbai":4931155015,"Gurugram":3876913658,"New Delhi":3302171515,"Noida":1282864000,"Chennai":718767000,"Pune":633082000,"Multiple Locations":544590000},"inv_types":{"private equity round":27257998165,"series b":4799195735,"series d":1481799000,"series c":1044718394,"seed round":1041829318,"funding round":1000000000},"top_investors":{"Sequoia Capital":72,"Accel Partners":69,"Kalaari Capital":50,"SAIF Partners":48,"Blume Ventures":47,"Indian Angel Network":42},"top_startups":{"Flipkart":4759700000,"Rapido Bike Taxi":3900000000,"Paytm":3148950000,"Ola":1654200000,"Udaan":870000000,"Snapdeal":700000000,"True North":600000000,"BigBasket":507000000},"deals_table":[["Rapido Bike Taxi","2019-08-27","Transportation","Bengaluru","Series B",3900000000],["Flipkart","2017-08-11","E-Commerce","Bengaluru","Private Equity Round",2500000000],["Flipkart","2017-03-21","E-Commerce","Bengaluru","Private Equity Round",1400000000],["Paytm","2017-05-18","E-Commerce","Bengaluru","Private Equity Round",1400000000],["Paytm","2019-11-25","Fintech","Noida","Funding Round",1000000000],["Flipkart","2015-07-28","Online Marketplace","Bengaluru","Private Equity Round",700000000],["Paytm","2015-09-29","E-Commerce & M-Commerce Platform","New Delhi","Private Equity Round",680000000],["True North","2018-08-30","Finance","Mumbai","Private Equity Round",600000000],["Udaan","2019-10-02","B2B","Bengaluru","Series D",585000000],["Ola","2015-11-18","Car Aggregator & Retail Mobile App","Bengaluru","Private Equity Round",500000000]]};
+
+const PAL=['#E8A33D','#4FD1C5','#EF6461','#9C97D6','#6FCF97','#6FA8DC','#D48CC4','#8B92A0'];
+function fmt(n){ if(n>=1e9)return '$'+(n/1e9).toFixed(2)+'B'; if(n>=1e6)return '$'+(n/1e6).toFixed(1)+'M'; if(n>=1e3)return '$'+(n/1e3).toFixed(0)+'K'; return '$'+n; }
+
+document.getElementById('kpis').innerHTML = [
+ ['Total funding', fmt(D.kpi.total_funding)],
+ ['Total deals', D.kpi.total_deals.toLocaleString()],
+ ['Unique startups', D.kpi.total_startups.toLocaleString()],
+ ['Avg. disclosed deal', fmt(D.kpi.avg_funding)],
+ ['Median disclosed deal', fmt(D.kpi.med_funding)]
+].map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
+
+Chart.defaults.color='#8B92A0'; Chart.defaults.font.family="'Inter',sans-serif"; Chart.defaults.font.size=11;
+Chart.defaults.borderColor='#262B33';
+const noGridY={grid:{display:false},ticks:{color:'#E9E7E2'}}, gridX={grid:{color:'#20242c'},ticks:{callback:v=>fmt(v)}};
+
+function hbar(id,obj){
+  new Chart(document.getElementById(id),{type:'bar',data:{labels:Object.keys(obj),datasets:[{data:Object.values(obj),backgroundColor:PAL,borderRadius:4}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.x)}}},scales:{y:noGridY,x:gridX}}});
+}
+new Chart(document.getElementById('cYear'),{type:'bar',data:{labels:Object.keys(D.yearly),datasets:[{data:Object.values(D.yearly),backgroundColor:'#E8A33D',borderRadius:5,maxBarThickness:46}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}},scales:{x:{grid:{display:false}},y:gridX}}});
+
+hbar('cInd1', D.industries); hbar('cCity1', D.cities);
+hbar('cType', D.inv_types); hbar('cCity2', D.cities);
+hbar('cInv', D.top_investors); hbar('cStartup', D.top_startups);
+
+new Chart(document.getElementById('cIndShare'),{type:'doughnut',data:{labels:Object.keys(D.industries),datasets:[{data:Object.values(D.industries),backgroundColor:PAL,borderColor:'#171B21',borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:10,padding:8,font:{size:10}}},tooltip:{callbacks:{label:c=>c.label+': '+fmt(c.parsed)}}}}});
+
+document.getElementById('dealsBody').innerHTML = D.deals_table.map(r=>
+ `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td class="amt">${fmt(r[5])}</td></tr>`).join('');
+
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); document.getElementById('p'+b.dataset.p).classList.add('active');
+}));
+</script>
+</body>
+</html>
